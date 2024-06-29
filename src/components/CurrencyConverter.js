@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./styles.css";
 
 const CurrencyConverter = () => {
   const [amount, setAmount] = useState("");
@@ -7,13 +6,24 @@ const CurrencyConverter = () => {
   const [result, setResult] = useState("Amount in PLN: -");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const handleInputChange = (e) => {
+    const { value } = e.target;
+    const validAmountPattern = /^\d*([.,]?\d{0,2})?$/;
+
+    if (validAmountPattern.test(value)) {
+      setAmount(value);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     setResult("Amount in PLN: -");
     setErrorMessage("");
 
-    if (!amount || amount <= 0) {
+    const myAmount = parseFloat(amount.replace(",", "."));
+
+    if (!myAmount || myAmount <= 0) {
       setErrorMessage("Please enter a correct amount.");
       return;
     }
@@ -24,7 +34,9 @@ const CurrencyConverter = () => {
       );
       const data = await response.json();
       const rate = data.rates[0].mid;
-      const conversionResult = (amount * rate).toFixed(2);
+      let conversionResult = (myAmount * rate).toFixed(2);
+
+      if (amount.indexOf(',') > 0) { conversionResult = conversionResult.replace(".", ",") }
 
       setResult(`Amount in PLN: ${conversionResult}`);
     } catch (error) {
@@ -38,14 +50,14 @@ const CurrencyConverter = () => {
       <img src="logo.webp" alt="Logo" className="logo" />
       <div className="converter">
         <h1>Currency Converter</h1>
-        <form id="converter-form" onSubmit={handleSubmit}>
+        <form  onSubmit={handleSubmit}>
           <input
-            type="number"
+            type="text"
             name="amount"
             className="form-element"
             placeholder="Enter amount"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onInput={handleInputChange}
           />
           <select
             name="currency"
@@ -61,9 +73,9 @@ const CurrencyConverter = () => {
             Convert
           </button>
         </form>
-        <div id="result">{result}</div>
+        <div className="result">{result}</div>
         {errorMessage && (
-          <div id="error-message" className="error-message">
+          <div className="error-message">
             {errorMessage}
           </div>
         )}
